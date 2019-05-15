@@ -11,6 +11,10 @@ import com.example.atypicaltrails.login.LoginActivity;
 import com.example.atypicaltrails.serverApi.AtypicalServerApi;
 import com.example.atypicaltrails.R;
 import com.example.atypicaltrails.register.call.RegisterUserData;
+import com.example.atypicaltrails.serverApi.ServerMessage;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -145,47 +149,50 @@ public class RegisterActivity extends AppCompatActivity {
                 textInputEmail.getEditText().getText().toString().trim(), textInputPhone.getEditText().getText().toString().trim(), textInputAddress.getEditText().getText().toString().trim()
                 , textInputPassword.getEditText().getText().toString().trim());
 
-        Call<String> registerCall = atypicalServerApi.registerUser(userData);
-
-        registerCall.enqueue(new Callback<String>() {
+        Call<ServerMessage> registerCall = atypicalServerApi.registerUser(userData);
+        registerCall.enqueue(new Callback<ServerMessage>() {
             @Override
-            public void onResponse(Call<String> call, Response<String> response) {
+            public void onResponse(Call<ServerMessage> call, Response<ServerMessage> response) {
                 try {
-                    //TODO ver se res é necessario para mais alguma coisa
-                    String res;
+                    //TODO ver se res é necessario para mais alguma cisa
+                    ServerMessage msg;
+                    JSONObject errorResponse;
                     switch (response.code()) {
-                        case 403:
-                            res = response.errorBody().string();
-                            textInputPassword.setError(res);
-                            break;
                         case 200:
-                            res = response.body();
-                            Toast.makeText(RegisterActivity.this, res, Toast.LENGTH_SHORT).show();
+                            msg = response.body();
+                            Toast.makeText(RegisterActivity.this, msg.getMsg(), Toast.LENGTH_SHORT).show();
                             openLoginActivity();
+                            break;
+                        case 400:
+                            errorResponse = new JSONObject(response.errorBody().string());
+                            textInputUsername.setError(errorResponse.getString("msg"));
+                            break;
+                        case 403:
+                            errorResponse = new JSONObject(response.errorBody().string());
+                            textInputEmail.setError(errorResponse.getString("msg"));
                             break;
                         default:
                             break;
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
                 return;
             }
 
-
             @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                //TODO enviar resposta para o layout que ocorreu falha
-                Toast.makeText(RegisterActivity.this, "Could not connect to server", Toast.LENGTH_SHORT).show();
-                ;
-                return;
+            public void onFailure(Call<ServerMessage> call, Throwable t) {
+                Toast.makeText(RegisterActivity.this, "Registration failed, could not connect to the server.", Toast.LENGTH_SHORT).show();
+
             }
         });
         return;
     }
 
-    public void openLoginActivity(){
-        Intent intent =  new Intent(getApplicationContext(), LoginActivity.class);
+    public void openLoginActivity() {
+        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
         startActivity(intent);
     }
 
@@ -199,6 +206,4 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
 
-
 }
-

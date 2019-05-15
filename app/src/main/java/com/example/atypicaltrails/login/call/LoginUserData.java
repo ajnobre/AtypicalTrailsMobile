@@ -9,11 +9,11 @@ public class LoginUserData {
     public String mobile;
     public String tokenID;
 
-    public LoginUserData(String email, String password) {
-        this.username = "";
+    public LoginUserData(String username, String password) {
+        this.username = username;
         this.password = password;
         this.name = "";
-        this.email = email;
+        this.email = "";
         this.address = "";
         this.mobile = "";
         this.tokenID = "";

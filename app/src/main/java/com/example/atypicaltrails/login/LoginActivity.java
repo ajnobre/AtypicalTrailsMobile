@@ -1,6 +1,6 @@
 package com.example.atypicaltrails.login;
 
-import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
@@ -11,6 +11,11 @@ import android.widget.Toast;
 import com.example.atypicaltrails.R;
 import com.example.atypicaltrails.login.call.LoginUserData;
 import com.example.atypicaltrails.serverApi.AtypicalServerApi;
+import com.example.atypicaltrails.serverApi.ServerMessage;
+import com.example.atypicaltrails.session.SessionActivity;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -24,7 +29,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
 public class LoginActivity extends AppCompatActivity {
     private AtypicalServerApi atypicalServerApi;
     private String baseUrl = "https://androidservertester2.appspot.com/rest/";
-    private TextInputLayout textInputEmail;
+    private TextInputLayout textInputUsername;
     private TextInputLayout textInputPassword;
 
     public static final String SHARED_PREFS = "sharedPrefs";
@@ -42,18 +47,18 @@ public class LoginActivity extends AppCompatActivity {
 
         atypicalServerApi = retrofit.create(AtypicalServerApi.class);
 
-        textInputEmail = findViewById(R.id.text_input_email);
+        textInputUsername = findViewById(R.id.text_input_username);
         textInputPassword = findViewById(R.id.text_input_password);
 
     }
 
     public boolean validateEmail() {
-        String emailInput = textInputEmail.getEditText().getText().toString().trim();
+        String emailInput = textInputUsername.getEditText().getText().toString().trim();
         if (emailInput.isEmpty()) {
-            textInputEmail.setError("Field can't be empty");
+            textInputUsername.setError("Field can't be empty");
             return false;
         } else {
-            textInputEmail.setError(null);
+            textInputUsername.setError(null);
             return true;
         }
     }
@@ -70,40 +75,49 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void tryLogin() {
-        LoginUserData userData = new LoginUserData(textInputEmail.getEditText().getText().toString().trim(), textInputPassword.getEditText().getText().toString().trim());
+        LoginUserData userData = new LoginUserData(textInputUsername.getEditText().getText().toString().trim(), textInputPassword.getEditText().getText().toString().trim());
         atypicalServerApi.loginUser(userData);
 
-        Call<String> loginCall = atypicalServerApi.loginUser(userData);
-        loginCall.enqueue(new Callback<String>() {
+        Call<ServerMessage> loginCall = atypicalServerApi.loginUser(userData);
+
+        loginCall.enqueue(new Callback<ServerMessage>() {
             @Override
-            public void onResponse(Call<String> call, Response<String> response) {
+            public void onResponse(Call<ServerMessage> call, Response<ServerMessage> response) {
                 try {
+                    ServerMessage msg;
+                    JSONObject errorResponse;
                     switch (response.code()) {
-                        case 403:
-                            textInputPassword.setError(response.errorBody().string());
-                            break;
                         case 200:
-                            saveData(response.body());
+                            msg = response.body();
+                            saveData(msg.getMsg());
                             //TODO encaminha para o perfil
                             Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                            openSessionActivity();
+                            break;
+                        case 403:
+                            errorResponse = new JSONObject(response.errorBody().string());
+                            textInputPassword.setError(errorResponse.getString("msg"));
                             break;
                         default:
                             break;
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
             }
 
             @Override
-            public void onFailure(Call<String> call, Throwable t) {
+            public void onFailure(Call<ServerMessage> call, Throwable t) {
                 Toast.makeText(LoginActivity.this, "Login failed, could not connect to the server.", Toast.LENGTH_SHORT).show();
-
             }
         });
-
     }
-
+    public void openSessionActivity() {
+        Intent intent = new Intent(getApplicationContext(), SessionActivity.class);
+        startActivity(intent);
+    }
 
     public void saveData(String token) {
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);

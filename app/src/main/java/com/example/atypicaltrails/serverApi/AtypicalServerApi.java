@@ -11,9 +11,9 @@ import retrofit2.http.POST;
 
 public interface AtypicalServerApi {
     @POST("register/v2")
-    Call<String> registerUser(@Body RegisterUserData userData);
+    Call<ServerMessage> registerUser(@Body RegisterUserData userData);
 
     @POST("login/user")
-    Call<String> loginUser(@Body LoginUserData userData);
+    Call<ServerMessage> loginUser(@Body LoginUserData userData);
 
 }
