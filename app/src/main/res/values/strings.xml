@@ -18,4 +18,7 @@
     <string name="invalid_matchPasswords">Passwords don\'t match</string>
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
+    <string name="info_profCreatedTrails">Created</string>
+    <string name="info_profExecutedTrails">Executed</string>
+    <string name="info_profTotalHours">Total Hours</string>
 </resources>
