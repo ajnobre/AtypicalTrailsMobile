@@ -4,6 +4,8 @@ import android.service.autofill.UserData;
 
 import com.example.atypicaltrails.login.call.LoginUserData;
 import com.example.atypicaltrails.register.call.RegisterUserData;
+import com.example.atypicaltrails.session.call.ProfileUserData;
+import com.example.atypicaltrails.session.userRes.GetUserInfoReponse;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -15,5 +17,10 @@ public interface AtypicalServerApi {
 
     @POST("login/user")
     Call<ServerMessage> loginUser(@Body LoginUserData userData);
+
+    @POST("login/getInfo")
+    Call<GetUserInfoReponse> getInfoUser(@Body ProfileUserData userData);
+
+    
 
 }

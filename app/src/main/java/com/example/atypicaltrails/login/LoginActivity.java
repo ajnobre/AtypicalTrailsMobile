@@ -34,6 +34,8 @@ public class LoginActivity extends AppCompatActivity {
 
     public static final String SHARED_PREFS = "sharedPrefs";
     public static final String TOKEN_ID = "TokenID";
+    public static final String USER_ID = "UserID";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +78,6 @@ public class LoginActivity extends AppCompatActivity {
 
     public void tryLogin() {
         LoginUserData userData = new LoginUserData(textInputUsername.getEditText().getText().toString().trim(), textInputPassword.getEditText().getText().toString().trim());
-        atypicalServerApi.loginUser(userData);
 
         Call<ServerMessage> loginCall = atypicalServerApi.loginUser(userData);
 
@@ -89,8 +90,7 @@ public class LoginActivity extends AppCompatActivity {
                     switch (response.code()) {
                         case 200:
                             msg = response.body();
-                            saveData(msg.getMsg());
-                            //TODO encaminha para o perfil
+                            saveData(msg.getMsg(), textInputUsername.getEditText().getText().toString().trim());
                             Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
                             openSessionActivity();
                             break;
@@ -114,15 +114,17 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
     public void openSessionActivity() {
         Intent intent = new Intent(getApplicationContext(), SessionActivity.class);
         startActivity(intent);
     }
 
-    public void saveData(String token) {
+    public void saveData(String token, String username) {
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(TOKEN_ID, token);
+        editor.putString(USER_ID, username);
         editor.apply();
     }
 
